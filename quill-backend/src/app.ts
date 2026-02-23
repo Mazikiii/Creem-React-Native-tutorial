@@ -12,13 +12,22 @@ import webhookRouter from "./routes/webhook.route";
 
 const app = express();
 
-// webhook route must be mounted BEFORE express.json()
-// creem signature verification requires the raw body string.
-// express.json() destroys the original payload bytes once it parses.
 app.use(
   "/api/webhooks/creem",
   rawBodyMiddleware,
-  express.json(),
+  (req: Request, _res: Response, next: NextFunction) => {
+    // rawBodyMiddleware already consumed the stream,
+    // we parse the body manually from the buffer we already captured
+    try {
+      const raw = (req as import("./types/creem").RawBodyRequest).rawBody;
+      if (raw && raw.length > 0) {
+        req.body = JSON.parse(raw.toString("utf8"));
+      }
+    } catch {
+      // leaving the body undefined, the route handler will catch  missing eventType
+    }
+    next();
+  },
   webhookRouter,
 );
 
