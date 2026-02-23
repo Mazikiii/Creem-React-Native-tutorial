@@ -70,27 +70,18 @@ export function CheckoutScreen({ navigation, route }: CheckoutScreenProps) {
     }
   }
 
-  // only allow creem domains, block everything else
+  // allow all https traffic so payment processors, 3ds redirects, etc don't get blocked
+  // only thing we explicitly stop is the deep link scheme, we handle that ourselves
   function handleShouldStartLoadWithRequest(
     request: WebViewNavigation,
   ): boolean {
     const { url } = request;
 
-    if (
-      url.startsWith("https://checkout.creem.io") ||
-      url.startsWith("https://creem.io") ||
-      url.startsWith("https://test-checkout.creem.io") ||
-      url.startsWith("about:") ||
-      url.startsWith("data:")
-    ) {
-      return true;
-    }
-
     if (url.startsWith(DEEP_LINK_SCHEME)) {
       return false;
     }
 
-    return false;
+    return true;
   }
 
   return (
