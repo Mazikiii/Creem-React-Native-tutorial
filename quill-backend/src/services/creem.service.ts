@@ -2,7 +2,7 @@ import crypto from "crypto";
 import { Creem } from "creem";
 import type { RedirectParams } from "../types/creem";
 
-// serverIdx: 0 = production, 1 = test
+// serverIdx 0 = production, 1 = test
 
 const isTest = process.env.NODE_ENV !== "production";
 
@@ -11,10 +11,9 @@ const creem = new Creem({
   serverIdx: isTest ? 1 : 0,
 });
 
-// createCheckoutSession
-// this creates a ccreem checkout session for the quill Pro product
-// The success_url uses the deep link scheme so the mobile WebView,
-// intercepts the redirect and brings the user back into the app.
+// creates a creem checkout session for the quill pro product,
+// success_url points at our own /payment/success route on the backend
+// which then bounces the user back into the app via the quill:// deep link
 
 export async function createCheckoutSession(
   requestId: string,
@@ -23,9 +22,10 @@ export async function createCheckoutSession(
     productId: process.env.CREEM_PRODUCT_ID!,
     requestId,
 
-    // creem will append checkout_id, order_id, customer_id, subscription_id,
-    // product_id, request_id, and signature as query params on redirect
-    successUrl: "quill://payment/success",
+    // Creem requires an https:// success URL — it rejects custom schemes like quill://.
+    // We point it at our own /payment/success route which then issues an HTML redirect
+    // to the quill:// deep link, forwarding all query params so the app can verify them.
+    successUrl: `${process.env.BACKEND_URL}/payment/success`,
   });
 
   if (!checkout.checkoutUrl) {
@@ -36,15 +36,9 @@ export async function createCheckoutSession(
 }
 
 // verifyRedirectSignature
-// we need to verify that the HMAC-SHA256 signature creem appends to the success_url redirect.
-
-// the rules are..
-// - exclude the signature param itself
-// - exclude any params whose value is null or undefined
-// - sort remaining params alphabetically by key
-// - join as key=value pairs with &
-// - Sign with HMAC-SHA256 using the API key as the secret
-// ---------------------------------------------------------------------------
+// verifies the hmac-sha256 signature creem appends to the success url redirect
+// rules are, exclude the signature itself, exclude null/undefined params,
+// sort the rest alphabetically, join as key=value with &, sign with hmac-sha256 using the api key
 
 export function verifyRedirectSignature(params: RedirectParams): boolean {
   const { signature, ...rest } = params;
@@ -74,9 +68,9 @@ export function verifyRedirectSignature(params: RedirectParams): boolean {
   return crypto.timingSafeEqual(expectedBuffer, receivedBuffer);
 }
 
-// this verifies the creem-signature header against the raw request body
-// the payload is the raw request body string, and never the parsed json.
-// the secret is the webhook secret from the Creem dashboard.
+// verifies the creem-signature header against the raw request body,
+// has to be the raw body string, not the parsed json, express.json() destroys it
+// the secret comes from the creem dashboard under developers > webhooks
 
 export function verifyWebhookSignature(
   rawBody: string,

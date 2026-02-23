@@ -4,6 +4,7 @@ import express, {
   type Response,
   type NextFunction,
 } from "express";
+import { URLSearchParams } from "url";
 import { rawBodyMiddleware } from "./middleware/rawBody";
 import checkoutRouter from "./routes/checkout.route";
 import verifyPaymentRouter from "./routes/verify-payment.route";
@@ -27,9 +28,32 @@ app.use(express.json());
 app.use("/api/checkout", checkoutRouter);
 app.use("/api/verify-payment", verifyPaymentRouter);
 
-// a health check to confirm the deployed server is reachable
+// just a health check, hit this to confirm the server is alive
 app.get("/health", (_req: Request, res: Response) => {
   res.status(200).json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+// creem won't accept a custom scheme like quill:// as a success url, it needs https://
+// so we point creem at this route instead, and it bounces the user to the deep link
+// forwarding all the query params creem appended so the app can still verify them
+app.get("/payment/success", (req: Request, res: Response) => {
+  const params = new URLSearchParams(
+    req.query as Record<string, string>,
+  ).toString();
+  const deepLink = `quill://payment/success${params ? `?${params}` : ""}`;
+
+  // Use a meta-refresh + JS redirect so it works in both WebView and browser
+  res.setHeader("Content-Type", "text/html");
+  res.send(`<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="refresh" content="0; url=${deepLink}" />
+  </head>
+  <body>
+    <script>window.location.replace("${deepLink}");</script>
+    <p>Redirecting back to Quill...</p>
+  </body>
+</html>`);
 });
 
 // 404 handler

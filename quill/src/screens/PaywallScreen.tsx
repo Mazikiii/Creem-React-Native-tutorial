@@ -130,6 +130,7 @@ export function PaywallScreen({ navigation }: PaywallScreenProps) {
   }, [cardScale, cardOpacity]);
 
   async function handleUpgrade() {
+    console.log("[paywall] handleUpgrade called, BACKEND_URL:", BACKEND_URL);
     try {
       const response = await fetch(`${BACKEND_URL}/api/checkout`, {
         method: "POST",
@@ -137,12 +138,17 @@ export function PaywallScreen({ navigation }: PaywallScreenProps) {
         body: JSON.stringify({}),
       });
 
+      console.log("[paywall] response status:", response.status);
       const data = await response.json();
+      console.log("[paywall] response data:", JSON.stringify(data));
 
       if (data.checkoutUrl) {
         navigation.navigate("Checkout", { checkoutUrl: data.checkoutUrl });
+      } else {
+        console.warn("[paywall] no checkoutUrl in response");
       }
-    } catch {
+    } catch (err) {
+      console.error("[paywall] fetch error:", err);
       // fallback for demo without a backend running
       navigation.navigate("Checkout", {
         checkoutUrl: "https://checkout.creem.io/demo",
