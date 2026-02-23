@@ -18,14 +18,14 @@ const creem = new Creem({
 export async function createCheckoutSession(
   requestId: string,
 ): Promise<string> {
+  const successUrl = `${process.env.BACKEND_URL}/payment/success`;
+  console.log("[checkout] BACKEND_URL:", process.env.BACKEND_URL);
+  console.log("[checkout] successUrl being sent to creem:", successUrl);
+
   const checkout = await creem.checkouts.create({
     productId: process.env.CREEM_PRODUCT_ID!,
     requestId,
-
-    // Creem requires an https:// success URL — it rejects custom schemes like quill://.
-    // We point it at our own /payment/success route which then issues an HTML redirect
-    // to the quill:// deep link, forwarding all query params so the app can verify them.
-    successUrl: `${process.env.BACKEND_URL}/payment/success`,
+    successUrl,
   });
 
   if (!checkout.checkoutUrl) {
