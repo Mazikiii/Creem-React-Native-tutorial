@@ -22,6 +22,7 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
   try {
     const checkoutUrl = await createCheckoutSession(requestId);
 
+    console.log("[checkout] url returned from creem:", checkoutUrl);
     res.status(200).json({ checkoutUrl });
   } catch (error) {
     const message =
