@@ -16,6 +16,15 @@ const router = Router();
 router.post("/", (req: RawBodyRequest, res: Response): void => {
   const signature = req.headers["creem-signature"];
 
+  console.log("[webhook] received event");
+  console.log("[webhook] has signature:", !!signature);
+  console.log("[webhook] has rawBody:", !!req.rawBody);
+  console.log("[webhook] rawBody length:", req.rawBody?.length ?? 0);
+  console.log(
+    "[webhook] CREEM_WEBHOOK_SECRET set:",
+    !!process.env.CREEM_WEBHOOK_SECRET,
+  );
+
   if (!signature || typeof signature !== "string") {
     console.warn("[webhook] missing creem-signature header");
     res.status(400).json({ error: "Missing signature header" });
@@ -32,6 +41,8 @@ router.post("/", (req: RawBodyRequest, res: Response): void => {
     req.rawBody.toString("utf8"),
     signature,
   );
+
+  console.log("[webhook] signature valid:", isValid);
 
   if (!isValid) {
     console.warn("[webhook] invalid signature — possible spoofed request");
