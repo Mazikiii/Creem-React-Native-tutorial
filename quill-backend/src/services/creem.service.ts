@@ -19,8 +19,6 @@ export async function createCheckoutSession(
   requestId: string,
 ): Promise<string> {
   const successUrl = `${process.env.BACKEND_URL}/payment/success`;
-  console.log("[checkout] BACKEND_URL:", process.env.BACKEND_URL);
-  console.log("[checkout] successUrl being sent to creem:", successUrl);
 
   const checkout = await creem.checkouts.create({
     productId: process.env.CREEM_PRODUCT_ID!,

@@ -20,9 +20,15 @@ router.post("/", async (req: Request, res: Response): Promise<void> => {
       : "user_demo";
 
   try {
-    const checkoutUrl = await createCheckoutSession(requestId);
+    const rawUrl = await createCheckoutSession(requestId);
 
-    console.log("[checkout] url returned from creem:", checkoutUrl);
+    // creem.io doesn't resolve in all regions but www.creem.io does,
+    // so we rewrite the host just in case, for most users this is a no-op
+    const checkoutUrl = rawUrl.replace(
+      "https://creem.io",
+      "https://www.creem.io",
+    );
+
     res.status(200).json({ checkoutUrl });
   } catch (error) {
     const message =
