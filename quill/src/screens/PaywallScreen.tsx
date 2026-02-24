@@ -211,7 +211,7 @@ export function PaywallScreen({ navigation }: PaywallScreenProps) {
               </View>
               <View style={styles.planHeader}>
                 <Text style={[styles.planName, styles.planNamePro]}>Pro</Text>
-                <Text style={[styles.planPrice, styles.planPricePro]}>$9</Text>
+                <Text style={[styles.planPrice, styles.planPricePro]}>$10</Text>
                 <Text style={[styles.planPeriod, styles.planPeriodPro]}>
                   per month
                 </Text>

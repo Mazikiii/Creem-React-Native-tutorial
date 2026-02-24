@@ -32,7 +32,7 @@ export function CheckoutScreen({ navigation, route }: CheckoutScreenProps) {
     webViewRef.current?.stopLoading();
 
     try {
-      // e.g. quill://payment/success?checkout_id=ch_xxx&signature=abc
+      // e.g quill://payment/success?checkout_id=ch_xxx&signature=abc
       const queryString = url.includes("?") ? url.split("?")[1] : "";
       const params = Object.fromEntries(
         queryString
